@@ -21,6 +21,23 @@
   const BANNED_WORDS = ["fuck", "shit", "piss", "cunt", "nigger", "faggot", "dick", "bitch"];
   const EMOJI_REGEX = /(\u00a9|\u00ae|[\u2000-\u3300]|\ud83c[\ud000-\udfff]|\ud83d[\ud000-\udfff]|\ud83e[\ud000-\udfff])/g;
 
+  const BUILT_IN_WORDS = [
+    "accommodate","accompany","according","achieve","aggressive","amateur","ancient","apparent",
+    "appreciate","attached","available","average","awkward","bargain","bruise","category",
+    "cemetery","committee","communicate","community","competition","conscience","conscious",
+    "controversy","convenience","correspond","criticise","curiosity","definite","desperate",
+    "determined","develop","dictionary","disastrous","embarrass","environment","equip",
+    "especially","exaggerate","excellent","existence","explanation","familiar","foreign",
+    "forty","frequently","government","guarantee","harass","hindrance","identity","immediate",
+    "individual","interfere","interrupt","language","leisure","lightning","marvellous",
+    "mischievous","muscle","necessary","neighbour","nuisance","occupy","occur","opportunity",
+    "parliament","persuade","physical","prejudice","privilege","profession","programme",
+    "pronunciation","queue","recognise","recommend","relevant","restaurant","rhyme","rhythm",
+    "sacrifice","secretary","shoulder","signature","sincere","soldier","stomach","sufficient",
+    "suggest","symbol","system","temperature","thorough","twelfth","variety","vegetable",
+    "vehicle","yacht"
+  ];
+
   // ====== Centralized UI Object ======
   const UI = {
     startMenu: document.getElementById("startMenu"),
@@ -60,7 +77,7 @@
   // ====== Game state ======
   let TOTAL_WORDS = 10;
   let MAX_ATTEMPTS = 3;
-  let sourceWords = [];
+  let sourceWords = [...BUILT_IN_WORDS];
   let gameWords = [];
   let currentIndex = 0;
   let currentWord = "";
@@ -208,24 +225,6 @@
       speechSynthesis.speak(utterance);
     }, 50);
   }
-
-  // ====== Built-in words ======
-  const BUILT_IN_WORDS = [
-    "accommodate","accompany","according","achieve","aggressive","amateur","ancient","apparent",
-    "appreciate","attached","available","average","awkward","bargain","bruise","category",
-    "cemetery","committee","communicate","community","competition","conscience","conscious",
-    "controversy","convenience","correspond","criticise","curiosity","definite","desperate",
-    "determined","develop","dictionary","disastrous","embarrass","environment","equip",
-    "especially","exaggerate","excellent","existence","explanation","familiar","foreign",
-    "forty","frequently","government","guarantee","harass","hindrance","identity","immediate",
-    "individual","interfere","interrupt","language","leisure","lightning","marvellous",
-    "mischievous","muscle","necessary","neighbour","nuisance","occupy","occur","opportunity",
-    "parliament","persuade","physical","prejudice","privilege","profession","programme",
-    "pronunciation","queue","recognise","recommend","relevant","restaurant","rhyme","rhythm",
-    "sacrifice","secretary","shoulder","signature","sincere","soldier","stomach","sufficient",
-    "suggest","symbol","system","temperature","thorough","twelfth","variety","vegetable",
-    "vehicle","yacht"
-  ];
 
   // ====== Helpers ======
   function shuffle(arr) {
