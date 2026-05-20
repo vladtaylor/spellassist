@@ -17,6 +17,7 @@
   // ====== Constants & Storage keys ======
   const LS_WORDS = "spellingGameV7.customWords";
   const LS_SCORES = "spellingGameV7.highScores";
+  const LS_NAME = "spellingGameV7.publicName";
   const BANNED_WORDS = ["fuck", "shit", "piss", "cunt", "nigger", "faggot", "dick", "bitch"];
   const EMOJI_REGEX = /(\u00a9|\u00ae|[\u2000-\u3300]|\ud83c[\ud000-\udfff]|\ud83d[\ud000-\udfff]|\ud83e[\ud000-\udfff])/g;
 
@@ -157,6 +158,7 @@
         score: score,
         timestamp: firebase.firestore.FieldValue.serverTimestamp()
       });
+      localStorage.setItem(LS_NAME, name);
       UI.publicScoreStatus.textContent = "✅ Score posted!";
       UI.publicName.disabled = true;
       UI.publicAge.disabled = true;
@@ -502,6 +504,7 @@
     UI.submitBtn.classList.add("hidden");
     UI.nextBtn.classList.remove("hidden");
     UI.nextBtn.textContent = currentIndex === TOTAL_WORDS - 1 ? "Finish" : "Next word";
+    UI.nextBtn.focus();
 
     if (UI.autoAdvance.checked) {
       setTimeout(() => {
@@ -579,7 +582,26 @@
   };
 
   UI.guessInput.addEventListener("keydown", e => {
-    if (e.key === "Enter" && !wordCompleted) checkGuess();
+    if (e.key === "Enter") {
+      if (!wordCompleted) {
+        checkGuess();
+      } else if (!UI.nextBtn.classList.contains("hidden")) {
+        nextWord();
+      }
+    }
+    // "R" to repeat word
+    if (e.key.toLowerCase() === "r" && !UI.gameArea.classList.contains("hidden")) {
+      ensureAudio();
+      speakWord();
+    }
+  });
+
+  // Global "R" key for convenience if not in input
+  document.addEventListener("keydown", e => {
+    if (e.key.toLowerCase() === "r" && !UI.gameArea.classList.contains("hidden") && document.activeElement !== UI.guessInput) {
+      ensureAudio();
+      speakWord();
+    }
   });
 
   UI.guessInput.addEventListener("input", () => {
@@ -617,6 +639,11 @@
   // Initial load
   loadSavedWordsIntoTextarea();
   if (!UI.customWords.value.trim()) setBuiltInList();
+  
+  // Restore public name if saved
+  const savedName = localStorage.getItem(LS_NAME);
+  if (savedName) UI.publicName.value = savedName;
+
   renderScores();
   loadGlobalScores();
   updateStars();
