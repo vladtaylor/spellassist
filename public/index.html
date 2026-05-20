@@ -276,6 +276,83 @@
     .public-score-form .input-group { margin-bottom: 12px; }
     .public-score-form label { display: block; font-weight: 800; margin-bottom: 4px; font-size: 0.9rem; }
     #publicScoreStatus { margin-top: 8px; font-weight: 800; }
+
+    /* Cuddly Bear */
+    #bear-container {
+      position: fixed;
+      bottom: 20px;
+      right: -40px;
+      width: 120px;
+      height: 120px;
+      pointer-events: none;
+      z-index: 1000;
+      transition: right 0.5s ease-in-out;
+    }
+    #bear-container.active {
+      right: 10px;
+    }
+    .bear {
+      width: 100%;
+      height: 100%;
+      position: relative;
+    }
+    .bear-head {
+      width: 80px;
+      height: 70px;
+      background: #8B4513;
+      border-radius: 50% 50% 45% 45%;
+      position: absolute;
+      bottom: 10px;
+      right: 10px;
+      box-shadow: inset -5px -5px 0 rgba(0,0,0,0.1);
+    }
+    .bear-ear {
+      width: 25px;
+      height: 25px;
+      background: #8B4513;
+      border-radius: 50%;
+      position: absolute;
+    }
+    .ear-left { top: -5px; left: 5px; }
+    .ear-right { top: -5px; right: 5px; }
+    .eye {
+      width: 8px;
+      height: 8px;
+      background: #222;
+      border-radius: 50%;
+      position: absolute;
+      top: 30px;
+    }
+    .eye-left { left: 20px; }
+    .eye-right { right: 20px; }
+    .pupil {
+      width: 3px;
+      height: 3px;
+      background: white;
+      border-radius: 50%;
+      position: absolute;
+      top: 1px;
+      left: 1px;
+    }
+    .nose {
+      width: 12px;
+      height: 8px;
+      background: #442200;
+      border-radius: 50%;
+      position: absolute;
+      top: 42px;
+      left: 34px;
+    }
+    .muzzle {
+      width: 30px;
+      height: 20px;
+      background: #D2B48C;
+      border-radius: 50%;
+      position: absolute;
+      top: 40px;
+      left: 25px;
+      z-index: -1;
+    }
   </style>
 </head>
 <body>
@@ -437,12 +514,39 @@
   </div>
 </main>
 
+<div id="bear-container">
+  <div class="bear">
+    <div class="bear-ear ear-left"></div>
+    <div class="bear-ear ear-right"></div>
+    <div class="bear-head">
+      <div class="eye eye-left"><div class="pupil"></div></div>
+      <div class="eye eye-right"><div class="pupil"></div></div>
+      <div class="muzzle"></div>
+      <div class="nose"></div>
+    </div>
+  </div>
+</div>
+
 <!-- Firebase SDK -->
-<script src="/__/firebase/10.7.1/firebase-app-compat.js"></script>
-<script src="/__/firebase/10.7.1/firebase-firestore-compat.js"></script>
-<script src="/__/firebase/init.js?useServiceWorker=true"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
 
 <script>
+  // Explicit Firebase Configuration
+  const firebaseConfig = {
+    apiKey: "AIzaSyBscTlnrLdopeSCLTqJIimDtRrhhh47GFg",
+    authDomain: "spellassist-9b0c4.firebaseapp.com",
+    projectId: "spellassist-9b0c4",
+    storageBucket: "spellassist-9b0c4.firebasestorage.app",
+    messagingSenderId: "1041458803409",
+    appId: "1:1041458803409:web:d43a07201e0814e6830bf0"
+  };
+  
+  // Initialize Firebase
+  if (!firebase.apps.length) {
+    firebase.initializeApp(firebaseConfig);
+  }
+
   // ====== Storage keys ======
   const LS_WORDS = "spellingGameV7.customWords";
   const LS_SCORES = "spellingGameV7.highScores";
@@ -1120,6 +1224,46 @@
   loadGlobalScores();
   updateStars();
   updateStreak();
+
+  // ====== Cuddly Bear Logic ======
+  const bearContainer = document.getElementById("bear-container");
+  const eyes = document.querySelectorAll(".eye");
+
+  // Peek out after 2 seconds
+  setTimeout(() => {
+    bearContainer.classList.add("active");
+  }, 2000);
+
+  document.addEventListener("mousemove", (e) => {
+    if (!bearContainer.classList.contains("active")) return;
+
+    const mouseX = e.clientX;
+    const mouseY = e.clientY;
+
+    eyes.forEach(eye => {
+      const rect = eye.getBoundingClientRect();
+      const eyeX = rect.left + rect.width / 2;
+      const eyeY = rect.top + rect.height / 2;
+
+      const angle = Math.atan2(mouseY - eyeY, mouseX - eyeX);
+      const distance = Math.min(3, Math.hypot(mouseX - eyeX, mouseY - eyeY) / 50);
+
+      const pupilX = Math.cos(angle) * distance;
+      const pupilY = Math.sin(angle) * distance;
+
+      eye.querySelector(".pupil").style.transform = `translate(${pupilX}px, ${pupilY}px)`;
+    });
+
+    // Subtle head tilt/move
+    const bearHead = bearContainer.querySelector(".bear-head");
+    const containerRect = bearContainer.getBoundingClientRect();
+    const bearX = containerRect.left + containerRect.width / 2;
+    const bearY = containerRect.top + containerRect.height / 2;
+
+    const headAngle = Math.atan2(mouseY - bearY, mouseX - bearX) * (180 / Math.PI);
+    const tilt = Math.max(-10, Math.min(10, (mouseX - bearX) / 40));
+    bearHead.style.transform = `rotate(${tilt}deg)`;
+  });
 </script>
 </body>
 </html>
