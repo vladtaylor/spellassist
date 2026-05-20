@@ -279,22 +279,23 @@
 
     /* Cuddly Bear */
     #bear-container {
-      position: fixed;
+      position: absolute;
       bottom: 20px;
-      right: -40px;
+      right: -80px; /* Peek from behind the card */
       width: 120px;
       height: 120px;
       pointer-events: none;
-      z-index: 1000;
-      transition: right 0.5s ease-in-out;
+      z-index: -1; /* Behind the card */
+      transition: right 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275);
     }
     #bear-container.active {
-      right: 10px;
+      right: -50px; /* Peek out more */
     }
     .bear {
       width: 100%;
       height: 100%;
       position: relative;
+      transform: rotate(-15deg); /* Lean into the card */
     }
     .bear-head {
       width: 80px;
@@ -358,10 +359,22 @@
 <body>
 <header>Spelling Game (v7)</header>
 <main>
-  <div class="card">
+  <div class="card" style="position: relative;">
 
-    <!-- START MENU -->
-    <div id="startMenu">
+    <div id="bear-container">
+      <div class="bear">
+        <div class="bear-ear ear-left"></div>
+        <div class="bear-ear ear-right"></div>
+        <div class="bear-head">
+          <div class="eye eye-left"><div class="pupil"></div></div>
+          <div class="eye eye-right"><div class="pupil"></div></div>
+          <div class="muzzle"></div>
+          <div class="nose"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- START MENU -->    <div id="startMenu">
       <div class="row center"><h3>Game Settings</h3><div class="hint">Use the built-in list, or paste/upload your own words.</div></div>
 
       <div class="row panel">
@@ -510,22 +523,8 @@
         <button id="playAgainBtn">Play again</button>
       </div>
     </div>
-
   </div>
 </main>
-
-<div id="bear-container">
-  <div class="bear">
-    <div class="bear-ear ear-left"></div>
-    <div class="bear-ear ear-right"></div>
-    <div class="bear-head">
-      <div class="eye eye-left"><div class="pupil"></div></div>
-      <div class="eye eye-right"><div class="pupil"></div></div>
-      <div class="muzzle"></div>
-      <div class="nose"></div>
-    </div>
-  </div>
-</div>
 
 <!-- Firebase SDK -->
 <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
