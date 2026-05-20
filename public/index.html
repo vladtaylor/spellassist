@@ -278,131 +278,12 @@
     .public-score-form .input-group { margin-bottom: 12px; }
     .public-score-form label { display: block; font-weight: 800; margin-bottom: 4px; font-size: 0.9rem; }
     #publicScoreStatus { margin-top: 8px; font-weight: 800; }
-
-    /* Cuddly Bear */
-    #bear-container {
-      position: absolute;
-      top: 50%;
-      right: -75px; /* Position container mostly outside the card */
-      width: 100px;
-      height: 100px;
-      pointer-events: none;
-      transform: translateY(-50%) translateX(100px); /* Start fully hidden */
-      transition: transform 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-    }
-    #bear-container.active {
-      transform: translateY(-50%) translateX(0);
-    }
-    .bear {
-      width: 100%;
-      height: 100%;
-      position: relative;
-    }
-    .bear-head {
-      width: 80px;
-      height: 70px;
-      background: #8B4513;
-      border-radius: 50% 50% 45% 45%;
-      position: absolute;
-      top: 15px;
-      left: 15px; /* Head sits mostly outside the card edge */
-      box-shadow: inset -5px -5px 0 rgba(0,0,0,0.1);
-      z-index: -1;
-    }
-    .bear-ear {
-      width: 25px;
-      height: 25px;
-      background: #8B4513;
-      border-radius: 50%;
-      position: absolute;
-      z-index: -1;
-    }
-    /* Ears relative to head */
-    .ear-left { top: -10px; left: 5px; }
-    .ear-right { top: -10px; right: 5px; }
-    
-    .eye {
-      width: 8px;
-      height: 8px;
-      background: #222;
-      border-radius: 50%;
-      position: absolute;
-      top: 30px;
-    }
-    .eye-left { left: 15px; }
-    .eye-right { left: 45px; }
-    .pupil {
-      width: 3px;
-      height: 3px;
-      background: white;
-      border-radius: 50%;
-      position: absolute;
-      top: 1px;
-      left: 1px;
-    }
-    .nose {
-      width: 12px;
-      height: 8px;
-      background: #442200;
-      border-radius: 50%;
-      position: absolute;
-      top: 42px;
-      left: 30px;
-    }
-    .muzzle {
-      width: 30px;
-      height: 20px;
-      background: #D2B48C;
-      border-radius: 50%;
-      position: absolute;
-      top: 40px;
-      left: 21px;
-      z-index: -1;
-    }
-    /* Paws hugging the card edge */
-    .paw {
-      width: 35px;
-      height: 28px;
-      background: #8B4513;
-      border-radius: 12px;
-      position: absolute;
-      left: -5px; /* Overlap the card edge (container is at right: -75px) */
-      z-index: 20;
-      box-shadow: -2px 0 4px rgba(0,0,0,0.1);
-    }
-    .paw::after {
-      content: "";
-      position: absolute;
-      width: 18px;
-      height: 14px;
-      background: #A0522D;
-      border-radius: 50%;
-      bottom: 5px;
-      left: 8px;
-    }
-    .paw-top { top: 15px; transform: rotate(-15deg); }
-    .paw-bottom { bottom: 15px; transform: rotate(15deg); }
   </style>
 </head>
 <body>
 <header>Spelling Game (v7)</header>
 <main>
-  <div class="card" style="position: relative;">
-
-    <div id="bear-container">
-      <div class="bear">
-        <div class="bear-ear ear-left"></div>
-        <div class="bear-ear ear-right"></div>
-        <div class="paw paw-top"></div>
-        <div class="paw paw-bottom"></div>
-        <div class="bear-head">
-          <div class="eye eye-left"><div class="pupil"></div></div>
-          <div class="eye eye-right"><div class="pupil"></div></div>
-          <div class="muzzle"></div>
-          <div class="nose"></div>
-        </div>
-      </div>
-    </div>
+  <div class="card">
 
     <!-- START MENU -->    <div id="startMenu">
       <div class="row center"><h3>Game Settings</h3><div class="hint">Use the built-in list, or paste/upload your own words.</div></div>
@@ -1253,46 +1134,6 @@
   loadGlobalScores();
   updateStars();
   updateStreak();
-
-  // ====== Cuddly Bear Logic ======
-  const bearContainer = document.getElementById("bear-container");
-  const eyes = document.querySelectorAll(".eye");
-
-  // Peek out after 2 seconds
-  setTimeout(() => {
-    bearContainer.classList.add("active");
-  }, 2000);
-
-  document.addEventListener("mousemove", (e) => {
-    if (!bearContainer.classList.contains("active")) return;
-
-    const mouseX = e.clientX;
-    const mouseY = e.clientY;
-
-    eyes.forEach(eye => {
-      const rect = eye.getBoundingClientRect();
-      const eyeX = rect.left + rect.width / 2;
-      const eyeY = rect.top + rect.height / 2;
-
-      const angle = Math.atan2(mouseY - eyeY, mouseX - eyeX);
-      const distance = Math.min(3, Math.hypot(mouseX - eyeX, mouseY - eyeY) / 50);
-
-      const pupilX = Math.cos(angle) * distance;
-      const pupilY = Math.sin(angle) * distance;
-
-      eye.querySelector(".pupil").style.transform = `translate(${pupilX}px, ${pupilY}px)`;
-    });
-
-    // Subtle head tilt/move
-    const bearHead = bearContainer.querySelector(".bear-head");
-    const containerRect = bearContainer.getBoundingClientRect();
-    const bearX = containerRect.left + containerRect.width / 2;
-    const bearY = containerRect.top + containerRect.height / 2;
-
-    const headAngle = Math.atan2(mouseY - bearY, mouseX - bearX) * (180 / Math.PI);
-    const tilt = Math.max(-10, Math.min(10, (mouseX - bearX) / 40));
-    bearHead.style.transform = `rotate(${tilt}deg)`;
-  });
 </script>
 </body>
 </html>
