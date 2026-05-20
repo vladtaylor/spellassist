@@ -280,22 +280,22 @@
     /* Cuddly Bear */
     #bear-container {
       position: absolute;
-      bottom: 20px;
-      right: -80px; /* Peek from behind the card */
-      width: 120px;
-      height: 120px;
+      top: 50%;
+      right: -15px; /* Halfway hidden behind card */
+      width: 100px;
+      height: 100px;
       pointer-events: none;
-      z-index: -1; /* Behind the card */
-      transition: right 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+      z-index: 1001; /* Above the card to show paws */
+      transform: translateY(-50%) translateX(100%);
+      transition: transform 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275);
     }
     #bear-container.active {
-      right: -50px; /* Peek out more */
+      transform: translateY(-50%) translateX(0);
     }
     .bear {
       width: 100%;
       height: 100%;
       position: relative;
-      transform: rotate(-15deg); /* Lean into the card */
     }
     .bear-head {
       width: 80px;
@@ -303,9 +303,10 @@
       background: #8B4513;
       border-radius: 50% 50% 45% 45%;
       position: absolute;
-      bottom: 10px;
-      right: 10px;
+      top: 15px;
+      right: -40px; /* Head peeks from behind */
       box-shadow: inset -5px -5px 0 rgba(0,0,0,0.1);
+      z-index: 1;
     }
     .bear-ear {
       width: 25px;
@@ -313,9 +314,10 @@
       background: #8B4513;
       border-radius: 50%;
       position: absolute;
+      z-index: 0;
     }
-    .ear-left { top: -5px; left: 5px; }
-    .ear-right { top: -5px; right: 5px; }
+    .ear-left { top: 5px; right: 5px; }
+    .ear-right { top: 35px; right: -5px; }
     .eye {
       width: 8px;
       height: 8px;
@@ -324,8 +326,8 @@
       position: absolute;
       top: 30px;
     }
-    .eye-left { left: 20px; }
-    .eye-right { right: 20px; }
+    .eye-left { left: 15px; }
+    .eye-right { left: 45px; }
     .pupil {
       width: 3px;
       height: 3px;
@@ -342,7 +344,7 @@
       border-radius: 50%;
       position: absolute;
       top: 42px;
-      left: 34px;
+      left: 30px;
     }
     .muzzle {
       width: 30px;
@@ -351,9 +353,32 @@
       border-radius: 50%;
       position: absolute;
       top: 40px;
-      left: 25px;
+      left: 21px;
       z-index: -1;
     }
+    /* Paws hugging the card */
+    .paw {
+      width: 30px;
+      height: 25px;
+      background: #8B4513;
+      border-radius: 12px;
+      position: absolute;
+      left: -15px; /* Overlap the card edge */
+      z-index: 2;
+      box-shadow: -2px 0 4px rgba(0,0,0,0.1);
+    }
+    .paw::after { /* Paw pads */
+      content: "";
+      position: absolute;
+      width: 15px;
+      height: 12px;
+      background: #A0522D;
+      border-radius: 50%;
+      bottom: 4px;
+      left: 7px;
+    }
+    .paw-top { top: 20px; transform: rotate(-10deg); }
+    .paw-bottom { bottom: 20px; transform: rotate(10deg); }
   </style>
 </head>
 <body>
@@ -365,6 +390,8 @@
       <div class="bear">
         <div class="bear-ear ear-left"></div>
         <div class="bear-ear ear-right"></div>
+        <div class="paw paw-top"></div>
+        <div class="paw paw-bottom"></div>
         <div class="bear-head">
           <div class="eye eye-left"><div class="pupil"></div></div>
           <div class="eye eye-right"><div class="pupil"></div></div>
