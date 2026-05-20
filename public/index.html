@@ -266,6 +266,16 @@
     }
     th{ font-weight: 900; color:#2c3ea0; }
     .right{ text-align:right; }
+    .public-score-form {
+      border: 2px solid var(--brand);
+      padding: 16px;
+      margin-top: 16px;
+      text-align: left;
+    }
+    .public-score-form h4 { margin: 0 0 12px; }
+    .public-score-form .input-group { margin-bottom: 12px; }
+    .public-score-form label { display: block; font-weight: 800; margin-bottom: 4px; font-size: 0.9rem; }
+    #publicScoreStatus { margin-top: 8px; font-weight: 800; }
   </style>
 </head>
 <body>
@@ -329,6 +339,13 @@
           <button id="clearScoresBtn" class="small-btn" style="background:#b00020;">Clear</button>
         </div>
         <div id="highScoresArea" style="margin-top:8px;"></div>
+      </div>
+
+      <div class="row panel">
+        <div style="font-weight:900; margin-bottom:6px;">Global High Scores</div>
+        <div id="globalHighScoresArea" style="margin-top:8px;">
+          <div class="hint">Loading global scores...</div>
+        </div>
       </div>
     </div>
 
@@ -398,6 +415,20 @@
 
       <div id="resultsList"></div>
 
+      <div id="publicScoreForm" class="row panel public-score-form">
+        <h4>🌍 Post to Public Scoreboard</h4>
+        <div class="input-group">
+          <label for="publicName">Your Name (Max 20 chars)</label>
+          <input type="text" id="publicName" maxlength="20" placeholder="e.g. Alex" />
+        </div>
+        <div class="input-group">
+          <label for="publicAge">Your Age</label>
+          <input type="number" id="publicAge" min="1" max="120" placeholder="e.g. 10" style="width:100%; padding:10px 12px; border-radius:12px; border:1px solid #ccc; font-size:1rem; box-sizing:border-box;" />
+        </div>
+        <button id="submitPublicScoreBtn">Post Score</button>
+        <div id="publicScoreStatus" class="hint"></div>
+      </div>
+
       <div class="row center">
         <button id="playAgainBtn">Play again</button>
       </div>
@@ -406,10 +437,118 @@
   </div>
 </main>
 
+<!-- Firebase SDK -->
+<script src="/__/firebase/10.7.1/firebase-app-compat.js"></script>
+<script src="/__/firebase/10.7.1/firebase-firestore-compat.js"></script>
+<script src="/__/firebase/init.js?useServiceWorker=true"></script>
+
 <script>
   // ====== Storage keys ======
   const LS_WORDS = "spellingGameV7.customWords";
   const LS_SCORES = "spellingGameV7.highScores";
+
+  // ====== Validation & Moderation ======
+  const BANNED_WORDS = ["fuck", "shit", "piss", "cunt", "nigger", "faggot", "dick", "bitch"]; // Basic list
+  const EMOJI_REGEX = /(\u00a9|\u00ae|[\u2000-\u3300]|\ud83c[\ud000-\udfff]|\ud83d[\ud000-\udfff]|\ud83e[\ud000-\udfff])/g;
+
+  function hasProfanity(text) {
+    const low = text.toLowerCase();
+    return BANNED_WORDS.some(w => low.includes(w));
+  }
+
+  function hasEmojis(text) {
+    return EMOJI_REGEX.test(text);
+  }
+
+  // ====== Firebase Global Scores ======
+  let db;
+  try {
+    db = firebase.firestore();
+  } catch(e) { console.error("Firebase not initialized", e); }
+
+  async function loadGlobalScores() {
+    const area = document.getElementById("globalHighScoresArea");
+    if (!db) {
+      area.innerHTML = '<div class="hint">Global scores unavailable.</div>';
+      return;
+    }
+
+    try {
+      const snap = await db.collection("scores")
+        .orderBy("score", "desc")
+        .orderBy("timestamp", "asc")
+        .limit(10)
+        .get();
+
+      if (snap.empty) {
+        area.innerHTML = '<div class="hint">No global scores yet. Be the first!</div>';
+        return;
+      }
+
+      const rows = snap.docs.map((doc, i) => {
+        const s = doc.data();
+        const date = s.timestamp ? new Date(s.timestamp.seconds * 1000).toLocaleDateString() : "---";
+        return `<tr><td>${i+1}</td><td>${s.name}</td><td>${s.score}</td><td>${s.age}</td><td class="right">${date}</td></tr>`;
+      }).join("");
+
+      area.innerHTML = `
+        <table>
+          <thead><tr><th>#</th><th>Name</th><th>Score</th><th>Age</th><th class="right">Date</th></tr></thead>
+          <tbody>${rows}</tbody>
+        </table>
+      `;
+    } catch (err) {
+      console.error(err);
+      area.innerHTML = '<div class="hint">Failed to load global scores.</div>';
+    }
+  }
+
+  async function submitPublicScore() {
+    const nameInput = document.getElementById("publicName");
+    const ageInput = document.getElementById("publicAge");
+    const status = document.getElementById("publicScoreStatus");
+    const btn = document.getElementById("submitPublicScoreBtn");
+
+    const name = nameInput.value.trim();
+    const age = parseInt(ageInput.value);
+
+    if (!name || name.length > 20) {
+      status.textContent = "⚠️ Name must be 1-20 characters.";
+      return;
+    }
+    if (isNaN(age) || age < 1 || age > 120) {
+      status.textContent = "⚠️ Please enter a valid age.";
+      return;
+    }
+    if (hasEmojis(name)) {
+      status.textContent = "⚠️ No emojis allowed in name.";
+      return;
+    }
+    if (hasProfanity(name)) {
+      status.textContent = "⚠️ Please use a more appropriate name.";
+      return;
+    }
+
+    btn.disabled = true;
+    status.textContent = "⏳ Posting...";
+
+    try {
+      await db.collection("scores").add({
+        name: name,
+        age: age,
+        score: score,
+        timestamp: firebase.firestore.FieldValue.serverTimestamp()
+      });
+      status.textContent = "✅ Score posted!";
+      nameInput.disabled = true;
+      ageInput.disabled = true;
+      loadGlobalScores();
+    } catch (err) {
+      console.error(err);
+      status.textContent = "❌ Error posting score.";
+      btn.disabled = false;
+    }
+  }
 
   // ====== Sounds (Web Audio) ======
   let audioCtx = null;
@@ -871,6 +1010,12 @@
 
     sessionSummary.textContent = `Best streak: ${bestStreak}. Missed words: ${missedWords.length ? missedWords.join(', ') : 'None'}.`;
 
+    // reset public score form
+    document.getElementById("publicName").disabled = false;
+    document.getElementById("publicAge").disabled = false;
+    document.getElementById("publicScoreStatus").textContent = "";
+    document.getElementById("submitPublicScoreBtn").disabled = false;
+
     // save high score entry
     addScoreEntry({
       ts: Date.now(),
@@ -919,12 +1064,14 @@
   document.getElementById("submitBtn").onclick = checkGuess;
   document.getElementById("nextBtn").onclick = nextWord;
   document.getElementById("repeatBtn").onclick = () => { ensureAudio(); speakWord(); };
+  document.getElementById("submitPublicScoreBtn").onclick = submitPublicScore;
 
   document.getElementById("playAgainBtn").onclick = () => {
     speechSynthesis.cancel();
     resultArea.classList.add("hidden");
     startMenu.classList.remove("hidden");
     renderScores();
+    loadGlobalScores();
   };
 
   guessInput.addEventListener("keydown", e => {
@@ -970,6 +1117,7 @@
   loadSavedWordsIntoTextarea();
   if (!customWords.value.trim()) setBuiltInList();
   renderScores();
+  loadGlobalScores();
   updateStars();
   updateStreak();
 </script>
